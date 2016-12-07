@@ -1,0 +1,80 @@
+#https://mirrors.tuna.tsinghua.edu.cn/CRAN/
+#https://cran.r-project.org/mirrors.html
+
+#install.packages("randomForest")
+
+#install.packages("ggplot2")
+
+library(randomForest)
+library(ggplot2)
+setwd("~/Desktop/talk")
+
+pathName = "phone price and volume.csv"
+
+ID = 1: 10
+Price = 1:10
+Volume = 1:10
+
+DataForRegression=data.frame(ID,Price,Volume)
+DataForRegression[1,2]=878
+DataForRegression[1,3]=37
+DataForRegression[2,2]=1099
+DataForRegression[2,3]=58
+DataForRegression[3,2]=1176
+DataForRegression[3,3]=62
+DataForRegression[4,2]=1458
+DataForRegression[4,3]=167
+DataForRegression[5,2]=1569
+DataForRegression[5,3]=140
+DataForRegression[6,2]=1600
+DataForRegression[6,3]=88
+DataForRegression[7,2]=1800
+DataForRegression[7,3]=58
+DataForRegression[8,2]=1976
+DataForRegression[8,3]=32
+DataForRegression[9,2]=2158
+DataForRegression[9,3]=17
+DataForRegression[10,2]=2469
+DataForRegression[10,3]=8
+
+DataForRegression[,1]=1
+
+fit <- lm(Volume ~ ID+ Price , 
+          data=DataForRegression)
+
+drops <- c("Volume")
+
+#edit below
+PriceForPrediction=DataForRegression[, !(colnames(DataForRegression) %in% drops), drop=FALSE]
+
+CJJ=predict(fit,PriceForPrediction)
+
+mymodel <- randomForest( x=DataForRegression[,-3], y=DataForRegression$Volume,
+                         #xtest=testset[,-2], ytest=testset$apps,
+                         importance=TRUE, data = DataForRegression,
+                         ntree = 100, mtry=2)
+
+CJJ3=predict(mymodel, newdata =DataForRegression[,-3])
+
+DataForRegression[,4]=CJJ
+DataForRegression[,5]=CJJ3
+
+colnames(DataForRegression)[4] <- "LinearFit"
+colnames(DataForRegression)[5] <- "RandomForests"
+
+ggplot(DataForRegression,aes(x=Price,y=Volume)) +
+  geom_point(size=3,color="red")+
+  geom_line(size=2,aes(x=Price,y=LinearFit),color="blue")+
+  geom_line(size=2,aes(x=Price,y=RandomForests),color="green")+
+  #scale_y_continuous(trans = "log2", breaks =ybreaks,labels=fancy_scientific)+
+  #scale_x_continuous(breaks = seq(from=1, to=22, by=1))+
+  xlab("Price (RMB)") +
+  theme_bw()+
+  #scale_colour_manual(name="Exponent (q)",values=cl)+
+  theme(text = element_text(size=13),panel.grid.major.x = element_blank() ,
+        panel.grid.major.y = element_line( size=.1, color="black" ) )+ 
+  ylab(expression("Number Sold"))
+
+ggsave(file="Regression.png", width=7.6, height=5.3, dpi = 400)
+
+
