@@ -1,0 +1,50 @@
+#install.packages("XLConnect")
+#install.packages("WriteXLS")
+setwd("~/Desktop/talk")
+
+library(WriteXLS) #load the package
+require("XLConnect")
+
+MaxPerson=19
+Month=4
+
+p <- function(..., sep='') {
+  paste(..., sep=sep, collapse=sep)
+}
+
+#count sum for 李思楠
+
+countSum<-function(MonthNumber){
+  #Jan is 1
+  FileName = p(MonthNumber,".xls")
+  data1 <- loadWorkbook(FileName, create = FALSE)
+  dateFrame1 <- readWorksheet(data1, sheet = "Sheet1")
+  
+  sum=0
+  for(i in 1:MaxPerson)
+  {
+    if(is.na(dateFrame1[i,1])==FALSE)
+    {
+      if(dateFrame1[i,1]=="李思楠")
+      {
+        sum=sum+as.numeric(dateFrame1[i,2])
+      }
+    }
+  }
+  
+  return(sum)
+}
+
+
+YearSum=0
+for(i in 1: Month)
+{
+  YearSum = YearSum + countSum(i)
+}
+print("李思楠前四月薪水")
+print(YearSum)
+
+Result=data.frame(c("李思楠"),c(YearSum))
+colnames(Result)[1]<- "Name"
+colnames(Result)[2]<- "Salary"
+WriteXLS(Result, ExcelFileName = "Result.xls", Encoding = "UTF-8")
